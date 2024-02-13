@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Threading;
 using System.Threading.Tasks;
 using Windows.Media.Control;
 
@@ -13,13 +14,12 @@ namespace WatchDog
 
         private const string AMPModelId = "AppleInc.AppleMusicWin";
 
-        private Messenger _messenger;
         private readonly Payload _payload;
+        private SemaphoreSlim semaphore = new SemaphoreSlim(1);
 
         public Provider()
         {
             _payload = new Payload();
-            _messenger = new Messenger(_payload);
 
             UpdateSessionManager();
             UpdateAMPSession();
@@ -52,7 +52,7 @@ namespace WatchDog
             {
                 _ampSession.MediaPropertiesChanged += OnMediaPropertiesChanged;
                 _ampSession.PlaybackInfoChanged += OnPlaybackInfoChanged;
-                OnMediaPropertiesChanged(null, null);
+                OnMediaPropertiesChanged(_ampSession, null);
             }
             else
             {
@@ -62,37 +62,58 @@ namespace WatchDog
 
         private void OnPlaybackInfoChanged(GlobalSystemMediaTransportControlsSession sender, PlaybackInfoChangedEventArgs args)
         {
-            var playbackInfo = _ampSession.GetPlaybackInfo();
-            var timelineProperties = _ampSession.GetTimelineProperties();
+            Thread.Sleep(1000);
+            try
+            {
+                if (_ampSession == null)
+                {
+                    _payload.ResetToInitialState();
+                    RPCManager.SetActivity(_payload);
+                    return;
+                };
 
-            _payload.playerState = playbackInfo.PlaybackStatus.ToString().ToLower() == Payload.PlayingStatuses.Playing
-                    ? Payload.PlayingStatuses.Playing : Payload.PlayingStatuses.Paused;
+                var playbackInfo = _ampSession.GetPlaybackInfo();
+                var timelineProperties = _ampSession.GetTimelineProperties();
+                _payload.playerState = playbackInfo.PlaybackStatus.ToString().ToLower() == Payload.PlayingStatuses.Playing
+                        ? Payload.PlayingStatuses.Playing : Payload.PlayingStatuses.Paused;
 
-            _payload.endTime = DateTimeOffset.UtcNow.ToUnixTimeMilliseconds() +
-                                (timelineProperties.EndTime.TotalMilliseconds - timelineProperties.Position.TotalMilliseconds);
-            _payload.duration = timelineProperties.EndTime.TotalSeconds - timelineProperties.StartTime.TotalSeconds;
+                _payload.endTime = DateTimeOffset.UtcNow.ToUnixTimeMilliseconds() +
+                                    (timelineProperties.EndTime.TotalMilliseconds - timelineProperties.Position.TotalMilliseconds);
+                _payload.duration = timelineProperties.EndTime.TotalSeconds - timelineProperties.StartTime.TotalSeconds;
+
+                RPCManager.SetActivity(_payload);
+            } catch (Exception _)
+            {
+                _payload.ResetToInitialState();
+                RPCManager.SetActivity(_payload);
+            }
         }
 
         private async void OnMediaPropertiesChanged(GlobalSystemMediaTransportControlsSession sender, MediaPropertiesChangedEventArgs args)
         {
-            GlobalSystemMediaTransportControlsSessionMediaProperties mediaProperties = await GetMediaProperties(_ampSession);
-            if (mediaProperties != null && !(string.IsNullOrEmpty(mediaProperties.Title) && string.IsNullOrEmpty(mediaProperties.AlbumArtist)))
+            await semaphore.WaitAsync();
+            try
             {
-                ParseMediaProperties(mediaProperties);
+                await sender.TryGetMediaPropertiesAsync();
+            } catch (Exception _)
+            {
+
+            } 
+            
+            var songInfos = ClientScrapper.GetInfos();
+            if (songInfos != null)
+            {
+                _payload.artist = songInfos.SongArtist;
+                _payload.album = songInfos.SongAlbum;
+                _payload.title = songInfos.SongName;
+                OnPlaybackInfoChanged(null, null);
             }
             else
             {
                 _payload.ResetToInitialState();
+                RPCManager.SetActivity(_payload);
             }
-        }
-
-        private void ParseMediaProperties(GlobalSystemMediaTransportControlsSessionMediaProperties mediaProperties)
-        {
-            _payload.artist = mediaProperties.AlbumArtist.Split('—').First().Trim();
-            _payload.album = mediaProperties.AlbumArtist.Split('—').Last().Trim();
-            // payload.ThumbnailPath = mediaProperties.Thumbnail;
-            _payload.title = mediaProperties.Title;
-            OnPlaybackInfoChanged(null, null);
+             semaphore.Release();
         }
 
         private void SetAMPSession(GlobalSystemMediaTransportControlsSession newSession)
