@@ -44,7 +44,7 @@ jobs:
           ref: ${{ github.ref.name || inputs.tag }}
       - uses: actions/download-artifact@v2
         with:
-          name: watchdog-build
+          name: apple-music-rpc-build
       - name: Create release
         id: create_release
         uses: ncipollo/release-action@v1
