@@ -1,9 +1,8 @@
 ﻿using System;
 using System.Linq;
 using System.Windows.Forms;
-using WatchDog.Properties;
 
-namespace WatchDog
+namespace AppleMusicRPC
 {
     internal static class Program
     {
@@ -20,7 +19,7 @@ namespace WatchDog
 
             // var window = new Window(AppVersion);
             // window.FormBorderStyle = FormBorderStyle.FixedSingle;
-            Application.Run(new WatchDogApplicationContext());
+            Application.Run(new ServiceApplicationContext());
         }
     }
 }

@@ -1,19 +1,12 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Diagnostics;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 using FlaUI.UIA3;
 using FlaUI.Core.Conditions;
 using System.Text.RegularExpressions;
-using System.Timers;
-using FlaUI.Core.Logging;
-using DiscordRPC.Logging;
 using FlaUI.Core.AutomationElements;
-using WebSocketSharp;
 
-namespace WatchDog
+namespace AppleMusicRPC
 {
 
     internal class SongInfos

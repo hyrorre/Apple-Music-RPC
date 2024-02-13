@@ -2,7 +2,7 @@
 using System.Runtime.CompilerServices;
 
 
-namespace WatchDog
+namespace AppleMusicRPC
 {
     public class Payload
     {

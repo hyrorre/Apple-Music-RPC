@@ -1,11 +1,10 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Windows.Media.Control;
 
-namespace WatchDog
+namespace AppleMusicRPC
 {
     internal class Provider
     {

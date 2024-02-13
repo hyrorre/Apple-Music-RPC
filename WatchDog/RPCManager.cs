@@ -1,15 +1,9 @@
 ﻿using System;
-using System.Collections;
 using System.Collections.Generic;
-using System.Linq;
-using System.Net;
-using System.Security.Policy;
-using System.Text;
 using System.Threading.Tasks;
 using DiscordRPC;
-using static System.Net.WebRequestMethods;
 
-namespace WatchDog
+namespace AppleMusicRPC
 {
     internal class RPCManager
     {

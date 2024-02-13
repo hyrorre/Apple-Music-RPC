@@ -1,18 +1,14 @@
 ﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 using System.Windows.Forms;
-using WatchDog.Properties;
+using AppleMusicRPC.Properties;
 
-namespace WatchDog
+namespace AppleMusicRPC
 {
-    internal class WatchDogApplicationContext : ApplicationContext
+    internal class ServiceApplicationContext : ApplicationContext
     {
         private NotifyIcon trayIcon;
 
-        public WatchDogApplicationContext()
+        public ServiceApplicationContext()
         {
             trayIcon = new NotifyIcon()
             {
