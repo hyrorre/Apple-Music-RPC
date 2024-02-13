@@ -31,8 +31,8 @@ jobs:
         run: ' Compress-Archive .\WatchDog\bin\Release\* apple-music-rpc.zip'
       - uses: actions/upload-artifact@v2
         with:
-          name: watchdog-build
-          path: watchdog.zip
+          name: apple-music-rpc-build
+          path: apple-music-rpc.zip
   create_release:
     name: Create release
     runs-on: ubuntu-latest
