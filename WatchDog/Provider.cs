@@ -1,8 +1,15 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
+using System.Diagnostics;
+using System.Drawing;
+using System.Net;
+using System.Text.RegularExpressions;
 using System.Threading;
 using System.Threading.Tasks;
+using System.Windows.Forms;
+using WebSocketSharp;
 using Windows.Media.Control;
+using Windows.Web.Http;
 
 namespace AppleMusicRPC
 {
@@ -148,5 +155,49 @@ namespace AppleMusicRPC
 
         private static async Task<GlobalSystemMediaTransportControlsSessionMediaProperties> GetMediaProperties(GlobalSystemMediaTransportControlsSession AMPSession) =>
             AMPSession == null ? null : await AMPSession.TryGetMediaPropertiesAsync();
+
+        public async void NowPlaying()
+        {
+            string format = "#NowPlaying \"{title}\" by {artist}";
+            string text = format;
+            text = text.Replace("{title}", _payload.title);
+            text = text.Replace("{artist}", _payload.artist);
+
+            switch (_payload.playerState)
+            {
+                case "playing":
+                case "paused":
+                    var extras = await TrackExtras.GetTrackExtras(
+                        _payload.title,
+                        _payload.artist,
+                        _payload.album
+                    );
+
+                    var artworkUrl = extras.ArtworkUrl;
+                    if (!artworkUrl.IsNullOrEmpty())
+                    {
+                        artworkUrl = Regex.Replace(artworkUrl, "/\\w+\\.jpg", "/1000x1000.jpg");
+
+                        var webClient = new WebClient();
+                        using (var stream = webClient.OpenRead(artworkUrl))
+                        {
+                            using (var bitmap = new Bitmap(stream))
+                            {
+                                Clipboard.SetImage(bitmap);
+                            }
+                        }
+                    }
+                    else
+                    {
+                        Clipboard.Clear();
+                    }
+
+                    break;
+                default:
+                    break;
+            }
+
+            Process.Start("https://twitter.com/intent/tweet?text=" + WebUtility.UrlEncode(text));
+        }
     }
 }
