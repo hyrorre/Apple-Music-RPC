@@ -177,10 +177,10 @@ namespace AppleMusicRPC
                         var artworkUrl = extras.ArtworkUrl;
                         if (!artworkUrl.IsNullOrEmpty())
                         {
-                            artworkUrl = Regex.Replace(artworkUrl, "/\\w+\\.jpg", "/1000x1000.jpg");
+                            var artworkLargeUrl = Regex.Replace(artworkUrl, "/[\\w-]+\\.jpg$", "/1000x1000.jpg");
 
                             var webClient = new WebClient();
-                            using (var stream = webClient.OpenRead(artworkUrl))
+                            using (var stream = webClient.OpenRead(artworkLargeUrl))
                             {
                                 using (var bitmap = new Bitmap(stream))
                                 {
