@@ -7,7 +7,7 @@ namespace AppleMusicRPC
     internal static class Program
     {
 
-        private const string AppVersion = "v0.4.5";
+        private const string AppVersion = "v0.4.6";
 
         [STAThread]
         private static void Main()

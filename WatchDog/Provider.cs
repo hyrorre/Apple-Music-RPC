@@ -167,28 +167,32 @@ namespace AppleMusicRPC
             {
                 case "playing":
                 case "paused":
-                    var extras = await TrackExtras.GetTrackExtras(
-                        _payload.title,
-                        _payload.artist,
-                        _payload.album
-                    );
+                    try {
+                        var extras = await TrackExtras.GetTrackExtras(
+                            _payload.title,
+                            _payload.artist,
+                            _payload.album
+                        );
 
-                    var artworkUrl = extras.ArtworkUrl;
-                    if (!artworkUrl.IsNullOrEmpty())
-                    {
-                        artworkUrl = Regex.Replace(artworkUrl, "/\\w+\\.jpg", "/1000x1000.jpg");
-
-                        var webClient = new WebClient();
-                        using (var stream = webClient.OpenRead(artworkUrl))
+                        var artworkUrl = extras.ArtworkUrl;
+                        if (!artworkUrl.IsNullOrEmpty())
                         {
-                            using (var bitmap = new Bitmap(stream))
+                            artworkUrl = Regex.Replace(artworkUrl, "/\\w+\\.jpg", "/1000x1000.jpg");
+
+                            var webClient = new WebClient();
+                            using (var stream = webClient.OpenRead(artworkUrl))
                             {
-                                Clipboard.SetImage(bitmap);
+                                using (var bitmap = new Bitmap(stream))
+                                {
+                                    Clipboard.SetImage(bitmap);
+                                }
                             }
                         }
-                    }
-                    else
-                    {
+                        else
+                        {
+                            Clipboard.Clear();
+                        }
+                    } catch (Exception e) {
                         Clipboard.Clear();
                     }
 
